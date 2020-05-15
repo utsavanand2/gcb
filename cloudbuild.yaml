@@ -7,7 +7,7 @@ steps:
 - id: "Do a shrinkwrap build"
   name: 'gcr.io/uts-1382/faas-cli:0.12.4'
   dir: 'openfaas'
-  args: ['faas-cli', 'build', '-f', 'hello-world.yml', '--shrinkwrap']
+  args: ['faas-cli', 'build', '-f', '/workspace/openfaas/hello-world.yml', '--shrinkwrap']
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
