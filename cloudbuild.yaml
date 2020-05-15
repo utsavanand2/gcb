@@ -1,0 +1,18 @@
+steps:
+- id: "Pull Templates"
+  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
+  dir: 'openfaas'
+  args: ['faas-cli', 'template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
+
+- id: "Do a shrinkwrap build"
+  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
+  dir: 'openfaas'
+  args: ['faas-cli', 'build', '-f', 'hello-world.yml', '--shrinkwrap']
+
+- id: "Build the docker image"
+  name: "gcr.io/cloud-builders/docker"
+  dir: 'openfaas'
+  args: ['build', '-t', 'gcr.io/uts-1382/hello-world:0.0.1', '-f', './build/hello-world/Dockerfile', './build/hello-world/']
+
+images:
+- 'gcr.io/uts-1382/hello-world:0.0.1'
