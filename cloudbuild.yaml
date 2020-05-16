@@ -1,18 +1,43 @@
 steps:
+- id: "Decrypt secrets from Google Cloud KMS for faas-cli login"
+  name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'kms'
+  - 'decrypt'
+  - '--ciphertext-file=${_SECRET_FILE_ENCRYPTED}'
+  - '--plaintext-file=${_SEECRET_FILE}'
+  - '--location=global'
+  - '--keyring=openfaas'
+  - '--key=openfaas-login'
+
 - id: "Pull Templates"
-  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
-  dir: 'openfaas'
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
   args: ['faas-cli', 'template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
 
 - id: "Do a shrinkwrap build"
-  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
-  dir: 'openfaas'
-  args: ['faas-cli', 'build', '-f', '/workspace/openfaas/hello-world.yml', '--shrinkwrap']
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
+  args: ['faas-cli', 'build', '-f', './hello-world.yml', '--shrinkwrap']
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
-  dir: 'openfaas'
-  args: ['build', '-t', 'gcr.io/uts-1382/hello-world:0.0.1', '-f', './build/hello-world/Dockerfile', './build/hello-world/']
+  args: ['build', '-t', 'utsavanand2/hello-world:0.0.1', 'utsavanand2/hello-world:latest', '-f', './build/hello-world/Dockerfile', './build/hello-world/']
 
-images:
-- 'gcr.io/uts-1382/hello-world:0.0.1'
+- id: "Push docker image"
+  name: "gcr.io/cloud-builders/docker"
+  args: ['push', 'utsavanand2/hello-world:latest']
+
+- id: "Login with faas-cli login"
+  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
+  args: ['cat', 'password_text', '|', 'faas-cli', 'login', '-u', 'admin', '--password-stdin']
+
+- id: "Deploy function to my RPi Cluster"
+  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
+  args: ['faas-cli', 'deploy', '-f', './hello-world.yml']
+
+substitutions:
+  _SECRET_FILE_ENCRYPTED: password_text.enc
+  _SEECRET_FILE: password_text
+
+# images:
+# - 'utsavanand2/hello-world:0.0.1'
+# - 'utsavanand2/hello-world:latest'
