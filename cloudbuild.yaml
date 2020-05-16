@@ -1,18 +1,50 @@
 steps:
 - id: "Pull Templates"
-  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
-  dir: 'openfaas'
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
   args: ['faas-cli', 'template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
 
 - id: "Do a shrinkwrap build"
-  name: 'gcr.io/uts-1382/faas-cli:0.12.4'
-  dir: 'openfaas'
-  args: ['faas-cli', 'build', '-f', '/workspace/openfaas/hello-world.yml', '--shrinkwrap']
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
+  args: ['faas-cli', 'build', '-f', 'hello.yml', '--shrinkwrap']
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
-  dir: 'openfaas'
-  args: ['build', '-t', 'gcr.io/uts-1382/hello-world:0.0.1', '-f', './build/hello-world/Dockerfile', './build/hello-world/']
+  args: ['build', '-t=utsavanand2/hello:$SHORT_SHA', '-t=utsavanand2/hello:latest', '-f', './build/hello/Dockerfile', './build/hello/']
 
-images:
-- 'gcr.io/uts-1382/hello-world:0.0.1'
+- id: "Docker login"
+  name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
+  args: ['-c', 'docker login -u=utsavanand2 -p=$$DOCKERHUB_PASSWD']
+  secretEnv: ['DOCKERHUB_PASSWD']
+
+- id: "Push docker image"
+  name: "gcr.io/cloud-builders/docker"
+  args: ['push', 'utsavanand2/hello:latest']
+
+- id: "Login with faas-cli login & Deploy to my RPi Cluster"
+  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
+  args:
+  - 'echo'
+  - '$$OPENFAAS_PASSWD'
+  - '|'
+  - 'faas-cli'
+  - 'login'
+  - '--password-stdin'
+  - '-g'
+  - 'https://openfaas.kumarutsavanand.com'
+  - '&&'
+  - 'faas-cli'
+  - 'deploy'
+  - '-f'
+  - './hello.yml'
+  - '-g'
+  - 'https://openfaas.kumarutsavanand.com'
+  secretEnv: ['OPENFAAS_PASSWD']
+
+secrets:
+- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-auth-passwd"
+  secretEnv:
+    OPENFAAS_PASSWD: "CiQAiBOWZQ5nq6axsZ0UpXKUMjRvBX88z4feAMT7sxmeRCE5UDUSQgCguUUJNz1ibXzRR3365rDdX29R7ID7FJvfeKqh9XFBLYb3vEePr+YKD4jkmrPmEnsEnUyYhiNcaNbg3NR3fc+KKQ=="
+- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/dockerhub-passwd"
+  secretEnv:
+    DOCKERHUB_PASSWD: "CiQAyYumFBFPBFz1Wfcv1/E59P1bHBFeKGOMcYDcNugaipAYehUSMwCPCajoZgV0xODnpnuP0dblmvs2AfbQyPtjJkbrzX+nKxe7oFw7UFICtDHk7LFRj3zgtg=="
