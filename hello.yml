@@ -6,5 +6,5 @@ functions:
   hello:
     lang: python3-http-debian
     handler: ./hello
-    image: utsavanand2/hello:latest
+    image: gcr.io/uts-1382/hello:latest
 

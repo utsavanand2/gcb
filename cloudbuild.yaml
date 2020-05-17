@@ -9,17 +9,11 @@ steps:
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
-  args: ['build', '-t=utsavanand2/hello:0.0.1', '-t=utsavanand2/hello:latest', '-f', './build/hello/Dockerfile', './build/hello/']
-
-- id: "Docker login"
-  name: "gcr.io/cloud-builders/docker"
-  entrypoint: "bash"
-  args: ['-c', 'docker login -u=utsavanand2 -p=$$DOCKERHUB_PASSWD']
-  secretEnv: ['DOCKERHUB_PASSWD']
+  args: ['build', '-t=gcr.io/$PROJECT_ID/hello:$SHORT_SHA', '-t=gcr.io/$PROJECT_ID/hello:latest', '-f', './build/hello/Dockerfile', './build/hello/']
 
 - id: "Push docker image"
   name: "gcr.io/cloud-builders/docker"
-  args: ['push', 'utsavanand2/hello:latest']
+  args: ['push', 'gcr.io/$PROJECT_ID/hello:latest']
 
 - id: "Login with faas-cli login & Deploy to my RPi Cluster"
   name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
@@ -31,24 +25,25 @@ steps:
   - 'login'
   - '--password-stdin'
   - '-g'
-  - 'https://openfaas.kumarutsavanand.com'
+  - '${_GATEWAY}'
   - '&&'
   - 'faas-cli'
   - 'deploy'
   - '-f'
   - './hello.yml'
   - '-g'
-  - 'https://openfaas.kumarutsavanand.com'
+  - '${_GATEWAY}'
   secretEnv: ['OPENFAAS_PASSWD']
 
 options:
   volumes:
     - name: 'buildvol'
       path: '/openfaas'
+
+substitutions:
+  _GATEWAY: http://35.192.130.206:8080
+  
 secrets:
-- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-auth-passwd"
+- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/gke-openfaas-gw"
   secretEnv:
-    OPENFAAS_PASSWD: "CiQAiBOWZQ5nq6axsZ0UpXKUMjRvBX88z4feAMT7sxmeRCE5UDUSQgCguUUJNz1ibXzRR3365rDdX29R7ID7FJvfeKqh9XFBLYb3vEePr+YKD4jkmrPmEnsEnUyYhiNcaNbg3NR3fc+KKQ=="
-- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/dockerhub-passwd"
-  secretEnv:
-    DOCKERHUB_PASSWD: "CiQAyYumFBFPBFz1Wfcv1/E59P1bHBFeKGOMcYDcNugaipAYehUSMwCPCajoZgV0xODnpnuP0dblmvs2AfbQyPtjJkbrzX+nKxe7oFw7UFICtDHk7LFRj3zgtg=="
+    OPENFAAS_PASSWD: "CiQAWlwxhlIkVVnXIvbIxrJkQstg6Z9N6UfJWNs5aFGKs8isvKgSNQCxF0+Ci8atE53ztsUXshS5XrEHw/wJFGOqKMntx0eq5XV1jgHBUli9VGeIHZo/07Nytyj8"
