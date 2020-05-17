@@ -1,15 +1,15 @@
 steps:
 - id: "Pull Templates"
-  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.5'
   args: ['faas-cli', 'template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
 
 - id: "Do a shrinkwrap build"
-  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.4'
-  args: ['faas-cli', 'build', '-f', 'hello.yml', '--shrinkwrap']
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.5'
+  args: ['faas-cli', 'build', '-f', './hello.yml', '--shrinkwrap']
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
-  args: ['build', '-t=utsavanand2/hello:$SHORT_SHA', '-t=utsavanand2/hello:latest', '-f', './build/hello/Dockerfile', './build/hello/']
+  args: ['build', '-t=utsavanand2/hello:0.0.1', '-t=utsavanand2/hello:latest', '-f', './build/hello/Dockerfile', './build/hello/']
 
 - id: "Docker login"
   name: "gcr.io/cloud-builders/docker"
@@ -41,6 +41,10 @@ steps:
   - 'https://openfaas.kumarutsavanand.com'
   secretEnv: ['OPENFAAS_PASSWD']
 
+options:
+  volumes:
+    - name: 'buildvol'
+      path: '/openfaas'
 secrets:
 - kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-auth-passwd"
   secretEnv:
