@@ -15,7 +15,7 @@ steps:
   name: "gcr.io/cloud-builders/docker"
   args: ['push', 'gcr.io/$PROJECT_ID/hello:latest']
 
-- id: "Login with faas-cli login & Deploy to my RPi Cluster"
+- id: "Login with faas-cli login & Deploy to my GKE Cluster"
   name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
   args:
   - 'echo'
@@ -42,7 +42,7 @@ options:
 
 substitutions:
   _GATEWAY: http://35.192.130.206:8080
-  
+
 secrets:
 - kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/gke-openfaas-gw"
   secretEnv:
