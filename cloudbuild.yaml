@@ -1,11 +1,11 @@
 steps:
 - id: "Pull Templates"
-  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.5'
-  args: ['faas-cli', 'template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.6'
+  args: ['template', 'pull', 'https://github.com/flexibility-org/python-flask-template']
 
 - id: "Do a shrinkwrap build"
-  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.5'
-  args: ['faas-cli', 'build', '-f', './hello.yml', '--shrinkwrap']
+  name: 'gcr.io/$PROJECT_ID/faas-cli:0.12.6'
+  args: ['build', '-f', './hello.yml', '--shrinkwrap']
 
 - id: "Build the docker image"
   name: "gcr.io/cloud-builders/docker"
@@ -15,34 +15,15 @@ steps:
   name: "gcr.io/cloud-builders/docker"
   args: ['push', 'gcr.io/$PROJECT_ID/hello:latest']
 
-- id: "Decrypt the OpenFaas Gateway Password"
-  name: "gcr.io/cloud-builders/gcloud"
-  args:
-  - 'kms'
-  - 'decrypt'
-  - '--ciphertext-file=secret.enc'
-  - '--plaintext-file=secret'
-  - '--location=global'
-  - '--keyring=openfaas'
-  - '--key=openfaas-passwd'
+- id: "Login with faas-cli login"
+  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.6"
+  entrypoint: "sh"
+  args: ['-c', 'echo -n $${OPENFAAS_PASSWD} | faas-cli login --password-stdin -g ${_GATEWAY}']
+  secretEnv: ['OPENFAAS_PASSWD']
 
-- id: "Login with faas-cli login & Deploy to my GKE Cluster"
-  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.4"
-  args:
-  - 'faas-cli'
-  - 'login'
-  - '-p'
-  - '$(cat secret)'
-  - '-g'
-  - '${_GATEWAY}'
-  - '&&'
-  - 'faas-cli'
-  - 'deploy'
-  - '-f'
-  - './hello.yml'
-  - '-g'
-  - '${_GATEWAY}'
-  # secretEnv: ['OPENFAAS_PASSWD']
+- id: "Deploy to Openfaas"
+  name: "gcr.io/$PROJECT_ID/faas-cli:0.12.6"
+  args: ['deploy', '-f', './hello.yml', '-g', '${_GATEWAY}']
 
 options:
   volumes:
@@ -50,9 +31,9 @@ options:
       path: '/openfaas'
 
 substitutions:
-  _GATEWAY: http://34.72.12.240:8080
+  _GATEWAY: http://35.192.23.243:8080
 
-# secrets:
-# - kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-passwd"
-#   secretEnv:
-#     OPENFAAS_PASSWD: "CiQAcC9QJTfk61nkf+FL9YUK+8lG0gv/nMpobrQFid78ImpdHrsSQwDQIbCIuB8cqDBm3NitTobctyFtndxdBqKjXBQ4fxf/jNCJDsgRas+X/bOSvDlzzPavu/HL7ZXubLGQqwPrCxU6YSQ="
+secrets:
+- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-passwd"
+  secretEnv:
+    OPENFAAS_PASSWD: "CiQAcC9QJTfk61nkf+FL9YUK+8lG0gv/nMpobrQFid78ImpdHrsSQwDQIbCIuB8cqDBm3NitTobctyFtndxdBqKjXBQ4fxf/jNCJDsgRas+X/bOSvDlzzPavu/HL7ZXubLGQqwPrCxU6YSQ="

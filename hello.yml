@@ -1,7 +1,7 @@
 version: 1.0
 provider:
   name: openfaas
-  gateway: http://34.72.12.240:8080
+  gateway: http://35.192.23.243:8080
 functions:
   hello:
     lang: python3-http-debian
