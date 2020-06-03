@@ -41,9 +41,9 @@ options:
       path: '/openfaas'
 
 substitutions:
-  _GATEWAY: http://35.192.130.206:8080
+  _GATEWAY: http://34.72.12.240:8080
 
 secrets:
-- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/gke-openfaas-gw"
+- kmsKeyName: "projects/uts-1382/locations/global/keyRings/openfaas/cryptoKeys/openfaas-passwd"
   secretEnv:
-    OPENFAAS_PASSWD: "CiQAWlwxhlIkVVnXIvbIxrJkQstg6Z9N6UfJWNs5aFGKs8isvKgSNQCxF0+Ci8atE53ztsUXshS5XrEHw/wJFGOqKMntx0eq5XV1jgHBUli9VGeIHZo/07Nytyj8"
+    OPENFAAS_PASSWD: "CiQAcC9QJTfk61nkf+FL9YUK+8lG0gv/nMpobrQFid78ImpdHrsSQwDQIbCIuB8cqDBm3NitTobctyFtndxdBqKjXBQ4fxf/jNCJDsgRas+X/bOSvDlzzPavu/HL7ZXubLGQqwPrCxU6YSQ="
